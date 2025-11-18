@@ -1,7 +1,8 @@
+import hashlib
+from typing import Dict
 from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Dict
 from dotenv import load_dotenv
 from services.payperq_analyzer import analyze_resume
 from services.pdf_parser import extract_text_from_pdf, validate_pdf_file
@@ -20,6 +21,7 @@ app.add_middleware(
 
 
 sessions: Dict[str, "UserSession"] = {}
+users: Dict[str, str] = {}
 
 
 class LoginRequest(BaseModel):
@@ -36,15 +38,49 @@ class UserSession(BaseModel):
     is_authenticated: bool = True
 
 
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
+
+def verify_password(password: str, hashed_password: str) -> bool:
+    return hash_password(password) == hashed_password
+
+
 @app.get("/")
 async def root():
     return {"message": "AI Resume Analyzer API is running"}
+
+
+@app.post("/signup")
+async def signup(request: LoginRequest):
+    if not request.username or not request.password:
+        raise HTTPException(status_code=400, detail="Username and password required")
+
+    if request.username in users:
+        raise HTTPException(status_code=400, detail="Username already exists")
+
+    users[request.username] = hash_password(request.password)
+
+    session_token = f"session_{request.username}_{len(sessions)}"
+    sessions[session_token] = UserSession(username=request.username)
+
+    return {
+        "message": "Account created successfully",
+        "session_token": session_token,
+        "username": request.username,
+    }
 
 
 @app.post("/login")
 async def login(request: LoginRequest):
     if not request.username or not request.password:
         raise HTTPException(status_code=400, detail="Username and password required")
+
+    if request.username not in users:
+        raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    if not verify_password(request.password, users[request.username]):
+        raise HTTPException(status_code=401, detail="Invalid username or password")
 
     session_token = f"session_{request.username}_{len(sessions)}"
     sessions[session_token] = UserSession(username=request.username)

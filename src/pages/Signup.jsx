@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { API_BASE_URL } from '../config/api';
 
-const Login = ({ onLogin }) => {
+const Signup = ({ onLogin }) => {
   const [formData, setFormData] = useState({
     username: '',
-    password: ''
+    password: '',
+    confirmPassword: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -13,23 +14,32 @@ const Login = ({ onLogin }) => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
-    setError(''); // Clear error when user starts typing
+    setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/login`, {
+      const response = await fetch(`${API_BASE_URL}/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password,
+        }),
       });
 
       const data = await response.json();
@@ -37,10 +47,10 @@ const Login = ({ onLogin }) => {
       if (response.ok) {
         onLogin(data.session_token, data.username);
       } else {
-        setError(data.detail || 'Login failed. Please try again.');
+        setError(data.detail || 'Sign up failed. Please try again.');
       }
     } catch (error) {
-      console.error('Login request failed:', error);
+      console.error('Signup request failed:', error);
       setError('Network error. Please check your connection and try again.');
     } finally {
       setLoading(false);
@@ -58,27 +68,27 @@ const Login = ({ onLogin }) => {
         <div className="mt-6 flex justify-center space-x-4">
           <Link
             to="/login"
-            className="px-4 py-2 rounded-lg text-sm font-semibold bg-white text-primary-600 shadow-sm"
+            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors duration-200"
           >
             Login
           </Link>
           <Link
             to="/signup"
-            className="px-4 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-primary-600 transition-colors duration-200"
+            className="px-4 py-2 rounded-lg text-sm font-semibold bg-white text-primary-600 shadow-sm"
           >
             Sign Up
           </Link>
         </div>
         <h2 className="mt-6 text-center text-3xl font-bold text-gray-900">
-          Sign in to your account
+          Create your account
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Or{' '}
+          Already have an account?{' '}
           <Link
-            to="/"
+            to="/login"
             className="font-medium text-primary-600 hover:text-primary-500 transition-colors duration-200"
           >
-            return to home page
+            Sign in
           </Link>
         </p>
       </div>
@@ -106,7 +116,7 @@ const Login = ({ onLogin }) => {
                   value={formData.username}
                   onChange={handleChange}
                   className="input-field"
-                  placeholder="Enter your username"
+                  placeholder="Choose a username"
                 />
               </div>
             </div>
@@ -120,33 +130,34 @@ const Login = ({ onLogin }) => {
                   id="password"
                   name="password"
                   type="password"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   required
                   value={formData.password}
                   onChange={handleChange}
                   className="input-field"
-                  placeholder="Enter your password"
+                  placeholder="Create a password"
+                  minLength={6}
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                Confirm Password
+              </label>
+              <div className="mt-1">
                 <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="input-field"
+                  placeholder="Re-enter your password"
+                  minLength={6}
                 />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                  Remember me
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <button className="font-medium text-primary-600 hover:text-primary-500 transition-colors duration-200">
-                  Forgot your password?
-                </button>
               </div>
             </div>
 
@@ -156,43 +167,15 @@ const Login = ({ onLogin }) => {
                 disabled={loading}
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
-                {loading ? (
-                  <div className="flex items-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Signing in...
-                  </div>
-                ) : (
-                  'Sign in'
-                )}
+                {loading ? 'Creating account...' : 'Create account'}
               </button>
             </div>
           </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Need an account?</span>
-              </div>
-            </div>
-
-            <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h3 className="text-sm font-medium text-blue-800 mb-2">New to AI Resume Analyzer?</h3>
-              <p className="text-sm text-blue-700">
-                Create a free account on the Sign Up tab to start analyzing your resumes
-                and access the dashboard.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default Login;
+export default Signup;
+

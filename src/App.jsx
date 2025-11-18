@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import Landing from './pages/Landing';
 import About from './pages/About';
 import Login from './pages/Login';
+import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import { API_BASE_URL } from './config/api';
 
@@ -92,6 +93,14 @@ function App() {
                 <Navigate to="/dashboard" replace /> : 
                 <Login onLogin={handleLogin} />
               } 
+            />
+            <Route 
+              path="/signup" 
+              element={
+                isAuthenticated ?
+                <Navigate to="/dashboard" replace /> :
+                <Signup onLogin={handleLogin} />
+              }
             />
             <Route 
               path="/dashboard" 

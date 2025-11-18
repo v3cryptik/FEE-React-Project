@@ -51,7 +51,7 @@ const Navbar = ({ isAuthenticated, user, onLogout }) => {
           </div>
 
           {/* User Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
@@ -75,12 +75,24 @@ const Navbar = ({ isAuthenticated, user, onLogout }) => {
                 </button>
               </div>
             ) : (
-              <Link
-                to="/login"
-                className="btn-primary text-sm"
-              >
-                Login
-              </Link>
+              <>
+                <Link
+                  to="/login"
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors duration-200 ${
+                    isActive('/login')
+                      ? 'bg-primary-50 text-primary-700 border-primary-200'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/signup"
+                  className="btn-primary text-sm"
+                >
+                  Sign Up
+                </Link>
+              </>
             )}
           </div>
 
@@ -156,12 +168,28 @@ const Navbar = ({ isAuthenticated, user, onLogout }) => {
               </button>
             </>
           ) : (
-            <Link
-              to="/login"
-              className="block px-3 py-2 rounded-md text-base font-medium text-primary-600 hover:text-primary-700 hover:bg-primary-50"
-            >
-              Login
-            </Link>
+            <>
+              <Link
+                to="/login"
+                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  isActive('/login') 
+                    ? 'bg-primary-100 text-primary-700' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                Login
+              </Link>
+              <Link
+                to="/signup"
+                className={`block px-3 py-2 rounded-md text-base font-medium ${
+                  isActive('/signup') 
+                    ? 'bg-primary-100 text-primary-700' 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                Sign Up
+              </Link>
+            </>
           )}
         </div>
       </div>

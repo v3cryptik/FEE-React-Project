@@ -107,3 +107,4 @@ def get_mock_analysis(resume_text: str) -> Dict[str, Any]:
         },
     }
 
+

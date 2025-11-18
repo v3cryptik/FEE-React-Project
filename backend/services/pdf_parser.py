@@ -41,3 +41,4 @@ def validate_pdf_file(file_content: bytes, filename: str) -> Tuple[bool, str]:
     except Exception as exc:  # pylint: disable=broad-except
         return False, f"Invalid PDF file: {exc}"
 
+
